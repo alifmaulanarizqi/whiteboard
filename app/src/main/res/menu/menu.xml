@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/importImage"
+        android:title="Import image"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/saveImage"
+        android:title="Save image"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/shareImage"
+        android:title="Share"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/changeBackgroundColor"
+        android:title="Change background color"
+        app:showAsAction="never"/>
+
+</menu>
