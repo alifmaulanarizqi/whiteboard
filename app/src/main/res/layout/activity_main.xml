@@ -21,7 +21,8 @@
             android:id="@+id/ivBackground"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:scaleType="centerCrop"/>
+            android:scaleType="centerCrop"
+            android:layout_marginVertical="30dp"/>
 
         <com.alifmaulanarizqi.drawingapp.DrawingView
             android:id="@+id/drawingView"

@@ -115,12 +115,12 @@ class DrawingView(context: Context, attrs: AttributeSet): View(context, attrs) {
         invalidate()
     }
 
-    fun clearEraserPath() {
+    fun clearEraserPath(newBgColor: Int) {
         val it: MutableIterator<CustomPath> = mPaths.iterator()
         while (it.hasNext()) {
             val path: CustomPath = it.next()
             if (path.color == mPreviousBgColor) {
-                it.remove()
+                path.color = newBgColor
             }
         }
 

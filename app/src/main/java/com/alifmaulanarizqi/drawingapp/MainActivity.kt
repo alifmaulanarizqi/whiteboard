@@ -288,7 +288,7 @@ class MainActivity : AppCompatActivity() {
                     // now change the picked color
                     // preview box to mDefaultColor
                     flCanvasContainer.setBackgroundColor(mBackgroundDefaultColor)
-                    drawingView.clearEraserPath()
+                    drawingView.clearEraserPath(mBackgroundDefaultColor)
                     drawingView.mPreviousBgColor = mBackgroundDefaultColor
 
                     val hexColor = String.format("#%06X", 0xFFFFFF and mBackgroundDefaultColor)
