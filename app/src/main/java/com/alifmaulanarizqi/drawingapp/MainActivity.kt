@@ -1,7 +1,6 @@
 package com.alifmaulanarizqi.drawingapp
 
 import android.Manifest
-import android.R.attr
 import android.app.Dialog
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -13,6 +12,7 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -35,12 +35,6 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.lang.Exception
-import android.R.attr.button
-
-import android.graphics.drawable.ColorDrawable
-
-
-
 
 
 class MainActivity : AppCompatActivity() {
@@ -194,7 +188,6 @@ class MainActivity : AppCompatActivity() {
 
             R.id.changeBackgroundColor -> {
                 openColorPickerDialogueBackground()
-//                flCanvasContainer.setBackgroundColor(ContextCompat.getColor(this, R.color.white))
             }
 
         }
@@ -295,6 +288,11 @@ class MainActivity : AppCompatActivity() {
                     // now change the picked color
                     // preview box to mDefaultColor
                     flCanvasContainer.setBackgroundColor(mBackgroundDefaultColor)
+                    drawingView.clearEraserPath()
+                    drawingView.mPreviousBgColor = mBackgroundDefaultColor
+
+                    val hexColor = String.format("#%06X", 0xFFFFFF and mBackgroundDefaultColor)
+                    drawingView.setColor(hexColor)
                 }
             })
         colorPickerDialogue.show()

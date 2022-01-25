@@ -3,24 +3,26 @@ package com.alifmaulanarizqi.drawingapp
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
+import android.util.Log
 import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
 import java.util.ArrayList
 
 class DrawingView(context: Context, attrs: AttributeSet): View(context, attrs) {
-    private lateinit var mDrawPath: CustomPath
+    private var mDrawPath: CustomPath
     private lateinit var mCanvasBitmap: Bitmap
-    private lateinit var mDrawPaint: Paint
-    private lateinit var mCanvasPaint: Paint
+    private var mDrawPaint: Paint = Paint()
+    private var mCanvasPaint: Paint
     private lateinit var canvas: Canvas
     private var mBrushThickness: Float = 0f
     private var mColor = Color.BLACK
     private val mPaths = ArrayList<CustomPath>()
     private val mUndoPaths = ArrayList<CustomPath>()
 
+    var mPreviousBgColor = Color.WHITE
+
     init {
-        mDrawPaint = Paint()
         mDrawPaint.color = mColor
         mDrawPaint.style = Paint.Style.STROKE
         mDrawPaint.strokeJoin = Paint.Join.ROUND
@@ -110,6 +112,18 @@ class DrawingView(context: Context, attrs: AttributeSet): View(context, attrs) {
     fun clear() {
         mPaths.clear()
         mUndoPaths.clear()
+        invalidate()
+    }
+
+    fun clearEraserPath() {
+        val it: MutableIterator<CustomPath> = mPaths.iterator()
+        while (it.hasNext()) {
+            val path: CustomPath = it.next()
+            if (path.color == mPreviousBgColor) {
+                it.remove()
+            }
+        }
+
         invalidate()
     }
 
