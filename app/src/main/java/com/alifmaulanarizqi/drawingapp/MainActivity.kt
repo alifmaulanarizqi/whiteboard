@@ -15,7 +15,6 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -361,7 +360,8 @@ class MainActivity : AppCompatActivity() {
                             val uri = contentResolver.insert(mediaContentUri, values)!!
                             imageOutStream = openOutputStream(uri)!!
                             result = uri.toString()
-                            uriString = RealPathUtil.getRealPath(this@MainActivity, Uri.parse(result))
+                            uriString =
+                                RealPathUtil.getRealPath(this@MainActivity, Uri.parse(result)).toString()
                         }
                     }
                     else {
