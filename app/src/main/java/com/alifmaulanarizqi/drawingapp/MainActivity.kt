@@ -2,15 +2,18 @@ package com.alifmaulanarizqi.drawingapp
 
 import android.Manifest
 import android.app.Dialog
+import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.media.MediaScannerConnection
+import android.net.Uri
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import android.view.Menu
@@ -31,9 +34,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import yuku.ambilwarna.AmbilWarnaDialog
 import yuku.ambilwarna.AmbilWarnaDialog.OnAmbilWarnaListener
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
+import java.io.OutputStream
 import java.lang.Exception
 
 
@@ -232,7 +235,7 @@ class MainActivity : AppCompatActivity() {
 //        }
 //    }
 
-    fun openColorPickerDialogue() {
+    private fun openColorPickerDialogue() {
 
         // the AmbilWarnaDialog callback needs 3 parameters
         // one is the context, second is default color,
@@ -264,7 +267,7 @@ class MainActivity : AppCompatActivity() {
         colorPickerDialogue.show()
     }
 
-    fun openColorPickerDialogueBackground() {
+    private fun openColorPickerDialogueBackground() {
 
         // the AmbilWarnaDialog callback needs 3 parameters
         // one is the context, second is default color,
@@ -335,25 +338,45 @@ class MainActivity : AppCompatActivity() {
 
     private suspend fun saveBitmapFile(bitmap: Bitmap?): String {
         var result = ""
+        var uriString = ""
 
         withContext(Dispatchers.IO) {
             if(bitmap != null) {
                 try {
-                    val bytes = ByteArrayOutputStream()
-                    bitmap.compress(Bitmap.CompressFormat.PNG, 90, bytes)
+                    val filename = "${System.currentTimeMillis()/1000}.png"
+                    val mimeType =  "image/png"
+                    val directory = Environment.DIRECTORY_PICTURES
+                    val mediaContentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
 
-                    val file = File(externalCacheDir?.absoluteFile.toString() + File.separator + "DrawingApp_" +
-                            System.currentTimeMillis()/1000 + ".png")
-                    val fileOutput = FileOutputStream(file)
-                    fileOutput.write(bytes.toByteArray())
-                    fileOutput.close()
+                    val imageOutStream: OutputStream
 
-                    result = file.absolutePath
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        val values = ContentValues().apply {
+                            put(MediaStore.Images.Media.DISPLAY_NAME, filename)
+                            put(MediaStore.Images.Media.MIME_TYPE, mimeType)
+                            put(MediaStore.Images.Media.RELATIVE_PATH, directory)
+                        }
+
+                        contentResolver.run {
+                            val uri = contentResolver.insert(mediaContentUri, values)!!
+                            imageOutStream = openOutputStream(uri)!!
+                            result = uri.toString()
+                            uriString = RealPathUtil.getRealPath(this@MainActivity, Uri.parse(result))
+                        }
+                    }
+                    else {
+                        val imagePath = Environment.getExternalStoragePublicDirectory(directory).absolutePath
+                        val image = File(imagePath, filename)
+                        imageOutStream = FileOutputStream(image)
+                        uriString = image.absolutePath
+                    }
+
+                    imageOutStream.use { bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it) }
 
                     runOnUiThread {
                         cancelProgressDialog()
                         if(result.isNotEmpty())
-                            Toast.makeText(this@MainActivity, "File saved succesfully: $result", Toast.LENGTH_LONG).show()
+                            Toast.makeText(this@MainActivity, "File saved succesfully: $uriString", Toast.LENGTH_LONG).show()
                         else
                             Toast.makeText(this@MainActivity, "Something went wrong while saving", Toast.LENGTH_LONG).show()
                     }
@@ -383,32 +406,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun shareImage(result:String){
-
-        /*MediaScannerConnection provides a way for applications to pass a
-        newly created or downloaded media file to the media scanner service.
-        The media scanner service will read metadata from the file and add
-        the file to the media content provider.
-        The MediaScannerConnectionClient provides an interface for the
-        media scanner service to return the Uri for a newly scanned file
-        to the client of the MediaScannerConnection class.*/
-
-        /*scanFile is used to scan the file when the connection is established with MediaScanner.*/
-        MediaScannerConnection.scanFile(
-            this@MainActivity, arrayOf(result), null
-        ) { path, uri ->
-            // This is used for sharing the image after it has being stored in the storage.
+        val uri = RealPathUtil.getRealPath(this, Uri.parse(result))
+        MediaScannerConnection.scanFile(this@MainActivity, arrayOf(result), null) {_, _ ->
             val shareIntent = Intent()
             shareIntent.action = Intent.ACTION_SEND
-            shareIntent.putExtra(Intent.EXTRA_STREAM, uri) // A content: URI holding a stream of data associated with the Intent, used to supply the data being sent.
-            shareIntent.type = "image/png" // The MIME type of the data being handled by this intent.
-            startActivity(
-                Intent.createChooser(shareIntent, "Share")
-            )// Activity Action: Display an activity chooser,
-            // allowing the user to pick what they want to before proceeding.
-            // This can be used as an alternative to the standard activity picker
-            // that is displayed by the system when you try to start an activity with multiple possible matches,
-            // with these differences in behavior:
+            shareIntent.type = "image/png"
+            shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.parse(uri))
+            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            startActivity(Intent.createChooser(shareIntent, "Share"))
         }
+
     }
 
 }
